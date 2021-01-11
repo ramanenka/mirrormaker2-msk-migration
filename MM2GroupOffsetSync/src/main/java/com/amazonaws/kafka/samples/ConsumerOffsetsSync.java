@@ -53,7 +53,9 @@ class ConsumerOffsetsSync implements Runnable {
             try {
                 consumerGroupDescriptions = describeConsumerGroupsResult.all().get();
                 logger.info("ConsumerGroupDescriptions for consumer group {} - {} \n", consumerGroupId, consumerGroupDescriptions);
-                return consumerGroupDescriptions.get(consumerGroupId).state() == ConsumerGroupState.EMPTY || (consumerGroupDescriptions.get(consumerGroupId).state() == ConsumerGroupState.DEAD);
+                boolean result = consumerGroupDescriptions.get(consumerGroupId).state() == ConsumerGroupState.EMPTY || (consumerGroupDescriptions.get(consumerGroupId).state() == ConsumerGroupState.DEAD);
+                logger.info("checkConsumerGroups result - {} \n", result);
+                return result;
             } catch (InterruptedException | ExecutionException e) {
                 logger.error(Util.stackTrace(e));
                 return false;
@@ -122,6 +124,8 @@ class ConsumerOffsetsSync implements Runnable {
     public void run() {
         if (checkConsumerGroups()) {
             updateConsumerGroupOffsets(getCheckpointOffsets());
+        } else {
+            logger.info("The consumer group is not in the appropriate state to be updated.");
         }
 
     }
