@@ -35,6 +35,12 @@
             <version>2.12.1</version>
         </dependency>
 
+        <dependency>
+            <groupId>io.strimzi</groupId>
+            <artifactId>mirror-maker-2-extensions</artifactId>
+            <version>0.1.0</version>
+        </dependency>
+
         <!-- Apache Log4J2 binding for SLF4J -->
         <dependency>
             <groupId>org.apache.logging.log4j</groupId>

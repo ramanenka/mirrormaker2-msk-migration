@@ -33,7 +33,20 @@ class ConsumerOffsetsSync implements Runnable {
         Map<String, Object> mm2config = new MM2Config().mm2config();
         Map<TopicPartition, OffsetAndMetadata> translatedOffsets = new HashMap<>();
         try {
-            translatedOffsets.putAll(RemoteClusterUtils.translateOffsets(mm2config, (String) mm2config.get("source.cluster.alias"), consumerGroupId, Duration.ofSeconds(20L)));
+            String sourceClusterAlias = (String) mm2config.get("source.cluster.alias");
+            for (Map.Entry<TopicPartition, OffsetAndMetadata> entry : RemoteClusterUtils.translateOffsets(mm2config, sourceClusterAlias, consumerGroupId, Duration.ofSeconds(20L)).entrySet()) {
+                String topic = entry.getKey().topic();
+                if (topic.startsWith(sourceClusterAlias)) {
+                    topic = topic.substring(sourceClusterAlias.length()+1);
+                }
+                translatedOffsets.put(
+                        new TopicPartition(
+                                topic,
+                                entry.getKey().partition()
+                        ),
+                        entry.getValue()
+                );
+            }
             if (translatedOffsets.size() == 0) {
                 logger.info("Could not find or get translated offsets for consumer group id: {} \n", consumerGroupId);
             } else {
@@ -124,9 +137,6 @@ class ConsumerOffsetsSync implements Runnable {
     public void run() {
         if (checkConsumerGroups()) {
             updateConsumerGroupOffsets(getCheckpointOffsets());
-        } else {
-            logger.info("The consumer group is not in the appropriate state to be updated.");
         }
-
     }
 }
